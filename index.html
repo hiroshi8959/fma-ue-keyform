@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FMA-UE Keyform 難易度設定ツール</title>
+  <style>
+    :root {
+      --ink: #1b2428;
+      --muted: #5d6a70;
+      --line: #d4dee2;
+      --panel: #ffffff;
+      --paper: #f5f7f4;
+      --blue: #b9dce6;
+      --violet: #d8c9e3;
+      --rose: #e7b8bb;
+      --olive: #cec9a3;
+      --accent: #146b7c;
+      --warn: #a64b1f;
+      --ok: #236b48;
+      --zero: #f3ece5;
+      --one: #fff4c7;
+      --two: #dcefdc;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.5;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 247, 244, 0.94);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      min-height: 38px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    button:hover { border-color: #9fb1b7; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(520px, 1.05fr) minmax(420px, 0.95fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      background: #fbfcfb;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .score-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .score-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 10px;
+      min-width: 0;
+    }
+
+    .score-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .score-value {
+      font-size: 24px;
+      font-weight: 750;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+
+    .section-title {
+      padding: 9px 12px;
+      font-weight: 750;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-title:first-child { border-top: 0; }
+    .a { background: var(--blue); }
+    .b { background: var(--violet); }
+    .c { background: var(--rose); }
+    .d { background: var(--olive); }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 150px;
+      gap: 10px;
+      padding: 9px 12px;
+      border-bottom: 1px solid #edf1f2;
+      align-items: center;
+    }
+
+    .item-row:last-child { border-bottom: 0; }
+
+    .item-index {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .item-main { min-width: 0; }
+
+    .item-name {
+      font-size: 14px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .item-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      overflow-wrap: anywhere;
+    }
+
+    .seg {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      overflow: hidden;
+      min-width: 138px;
+    }
+
+    .seg button {
+      min-height: 34px;
+      padding: 4px 0;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-radius: 0;
+      font-weight: 750;
+      background: #fff;
+    }
+
+    .seg button:last-child { border-right: 0; }
+    .seg button.active[data-score="0"] { background: var(--zero); color: #7b321b; }
+    .seg button.active[data-score="1"] { background: var(--one); color: #735b00; }
+    .seg button.active[data-score="2"] { background: var(--two); color: #175334; }
+
+    .results {
+      display: grid;
+      gap: 16px;
+    }
+
+    .recommendations {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .rec-box {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .rec-box.primary-rec {
+      border-color: #d4b64b;
+      background: #fff9df;
+      box-shadow: inset 0 0 0 1px rgba(212, 182, 75, 0.18);
+    }
+
+    .rec-box h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .rec-box.primary-rec h3 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #604900;
+      font-size: 15px;
+    }
+
+    .rec-box.primary-rec h3::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #d19a00;
+      box-shadow: 0 0 0 4px rgba(209, 154, 0, 0.16);
+      flex: 0 0 auto;
+    }
+
+    .rec-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .rec-list li { margin: 6px 0; }
+
+    .primary-rec .rec-list {
+      padding-left: 0;
+      list-style: none;
+      counter-reset: short-goal;
+      display: grid;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .primary-rec .rec-list li {
+      counter-increment: short-goal;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 7px 8px;
+      border: 1px solid rgba(212, 182, 75, 0.42);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .primary-rec .rec-list li::before {
+      content: counter(short-goal);
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: #6a5200;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .keyform {
+      padding: 12px 14px 14px;
+      max-height: calc(100vh - 260px);
+      overflow: auto;
+    }
+
+    .key-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr) 42px 92px;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 8px;
+      border-bottom: 1px solid #eef2f3;
+      min-height: 42px;
+    }
+
+    .key-row:first-child { border-top: 1px solid #eef2f3; }
+    .logit { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .key-name { font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+
+    .badge {
+      display: inline-grid;
+      place-items: center;
+      width: 32px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .score-0 { background: var(--zero); color: #7b321b; }
+    .score-1 { background: var(--one); color: #735b00; }
+    .score-2 { background: var(--two); color: #175334; }
+
+    .tag {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      text-align: center;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .tag.now { color: #6a5200; background: var(--one); border-color: #e5cf74; }
+    .tag.next { color: #7b321b; background: var(--zero); border-color: #e5c8b9; }
+    .tag.mastered { color: #175334; background: var(--two); border-color: #bad8bb; }
+
+    .note {
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfb;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .evidence {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .evidence h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .evidence p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .evidence ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .evidence li { margin: 5px 0; }
+
+    @media (max-width: 1040px) {
+      main { grid-template-columns: 1fr; }
+      .keyform { max-height: none; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { grid-template-columns: 1fr; }
+      .top-actions { justify-content: stretch; }
+      .top-actions button { flex: 1; }
+      main { padding: 10px; }
+      .score-strip, .recommendations { grid-template-columns: 1fr 1fr; }
+      .item-row { grid-template-columns: 26px minmax(0, 1fr); }
+      .seg { grid-column: 2; }
+      .key-row { grid-template-columns: 78px minmax(0, 1fr) 36px; }
+      .key-row .tag { grid-column: 2 / 4; justify-self: start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>FMA-UE Keyform 難易度設定ツール</h1>
+        <div class="subtitle">画像のFMA評価順で入力し、D項目を除いた臨床版Keyform階層に沿って練習候補を表示します。</div>
+      </div>
+      <div class="top-actions">
+        <button id="fillDemo">サンプル入力</button>
+        <button id="clearScores">クリア</button>
+        <button id="printPage" class="primary">印刷</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>評価入力</h2>
+        <span class="subtitle">0: 不可 / 1: 部分的 / 2: 可能</span>
+      </div>
+      <div id="inputList"></div>
+    </section>
+
+    <section class="results">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>スコア</h2>
+          <span class="subtitle">未入力は0点として計算</span>
+        </div>
+        <div class="score-strip">
+          <div class="score-card">
+            <div class="score-label">FMA-UE総合</div>
+            <div class="score-value"><span id="total66">0</span>/66</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Keyform対象</div>
+            <div class="score-value"><span id="total60">0</span>/<span id="keyformMax">54</span></div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">推定ステージ</div>
+            <div class="score-value" id="stageLabel">重度</div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">遷移ゾーン</div>
+            <div class="score-value" id="zoneCount">0</div>
+          </div>
+        </div>
+        <div class="recommendations">
+          <div class="rec-box primary-rec">
+            <h3>短期練習候補</h3>
+            <ol id="shortGoals" class="rec-list"></ol>
+          </div>
+          <div class="rec-box">
+            <h3>次の難易度候補</h3>
+            <ol id="longGoals" class="rec-list"></ol>
+          </div>
+        </div>
+        <div class="evidence">
+          <h3>移行区間の考え方</h3>
+          <p>
+            Woodburyら (2016) では、Keyform下部の一貫した点数パターンを易しい項目から難しい項目へ追い、隣接する低い点へ下がる最初の範囲を移行区間としています。具体的には、連続5項目のうち3項目が次に低い点数になった範囲を移行区間とし、この5項目を最適に挑戦的な治療ターゲットとして扱っています。
+          </p>
+          <ul>
+            <li>短期目標: 移行区間の5項目を、患者が選んだ実生活に近い課題へ置き換えて反復練習します。</li>
+            <li>長期目標: 移行区間より上の項目を、次に到達したい難易度として扱います。</li>
+            <li>Woodburyら (2016) のproof-of-concept studyでは、Keyformで初期目標を決め、3セッションごとにプログラムを進行させ、課題難易度と患者能力が概ね一致するように調整していました。</li>
+            <li>この版では、臨床上の採点条件に影響されやすいD. 協調性 / スピードの3項目をKeyform階層と移行区間判定から除外しています。</li>
+            <li>このツールの候補表示は臨床判断を補助する目安です。痛み、疲労、代償動作、課題の意味づけを合わせて調整してください。</li>
+          </ul>
+        </div>
+        <div class="note">
+          KeyformはVelozo & Woodbury (2011) の図1に示された30項目から、D. 協調性 / スピードの3項目を除いた27項目、54点版として表示しています。反射項目やD項目などKeyform対象外の項目は総合点にのみ反映します。参考: Woodbury ML et al. Arch Phys Med Rehabil. 2016;97(11):1863-1871. PMID: 27117385.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Keyform表示</h2>
+          <span class="subtitle">上ほど難しい</span>
+        </div>
+        <div id="keyform" class="keyform"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const sections = [
+      {
+        key: "a",
+        title: "A. 肩 / 肘 / 前腕",
+        items: [
+          { id: "flexor_reflex", name: "屈筋反射", note: "上腕二頭筋または手指屈筋", max: 2, keyform: false },
+          { id: "extensor_reflex", name: "伸筋反射", note: "上腕三頭筋", max: 2, keyform: false },
+          { id: "shoulder_elevation", name: "肩関節 挙上", note: "屈筋共同運動" },
+          { id: "shoulder_abduction", name: "肩関節 外転", note: "屈筋共同運動" },
+          { id: "shoulder_external_rotation", name: "肩関節 外旋", note: "屈筋共同運動" },
+          { id: "scapular_retraction", name: "肩甲骨 内転", note: "屈筋共同運動" },
+          { id: "elbow_flexion", name: "肘関節 屈曲", note: "屈筋共同運動" },
+          { id: "forearm_supination", name: "前腕 回外", note: "屈筋共同運動" },
+          { id: "shoulder_adduction_ir", name: "肩関節 内転 + 内旋", note: "伸筋共同運動" },
+          { id: "elbow_extension", name: "肘関節 伸展", note: "伸筋共同運動" },
+          { id: "forearm_pronation", name: "前腕 回内", note: "伸筋共同運動" },
+          { id: "hand_lumbar", name: "手を腰に", note: "共同運動を伴う随意運動" },
+          { id: "shoulder_flexion_90", name: "肩関節0度から90度の屈曲運動", note: "肘伸展位、前腕中間位" },
+          { id: "pron_sup_elbow_90", name: "前腕回内外運動", note: "肘90度、肩0度" },
+          { id: "shoulder_abduction_90", name: "肩関節90度から90度の外転運動", note: "肘伸展位、前腕回内位" },
+          { id: "shoulder_flexion_180", name: "肩関節90度から180度の屈曲運動", note: "肘伸展位、前腕中間位" },
+          { id: "pron_sup_elbow_ext", name: "前腕回内外運動", note: "肘伸展位、肩屈曲30-90度" },
+          { id: "normal_reflex", name: "正常反射", note: "IVが満点の場合のみ評価対象", keyform: false }
+        ]
+      },
+      {
+        key: "b",
+        title: "B. 手関節",
+        items: [
+          { id: "wrist_stable_90", name: "15度背屈位での手関節保持", note: "肩0度、肘90度、前腕回内位" },
+          { id: "wrist_flex_ext_90", name: "掌背屈の最大反復運動", note: "肩0度、肘90度、前腕回内位" },
+          { id: "wrist_stable_ext", name: "15度背屈位での手関節保持", note: "肩軽度屈曲/外転、肘0度" },
+          { id: "wrist_flex_ext_ext", name: "掌背屈の最大反復運動", note: "肩軽度屈曲/外転、肘0度" },
+          { id: "wrist_circumduction", name: "手関節の回旋運動", note: "肩0度、肘90度" }
+        ]
+      },
+      {
+        key: "c",
+        title: "C. 手指",
+        items: [
+          { id: "finger_mass_flexion", name: "手指の屈曲", note: "最大伸展位から" },
+          { id: "finger_mass_extension", name: "手指の伸展", note: "最大屈曲位から" },
+          { id: "cylindrical_grasp", name: "把持A: MCP伸展位、PIP/DIP屈曲把持", note: "患者から離れるように引っ張る" },
+          { id: "hook_grasp", name: "把持B: 母指と示指の伸展位での把持", note: "患者から離れるように引っ張る" },
+          { id: "palmar_prehension", name: "把持C: 母指と示指の指腹での把持", note: "鉛筆をつまみ、上に引っ張る" },
+          { id: "lateral_prehension", name: "把持D: 母指と示指の手掌面での把持", note: "直径3cm程度の筒を使用" },
+          { id: "spherical_grasp", name: "把持E: 球体の把持", note: "テニスボール程度の球体" }
+        ]
+      },
+      {
+        key: "d",
+        title: "D. 協調性 / スピード",
+        items: [
+          { id: "movement_tremor", name: "振戦", note: "指鼻試験5回", keyform: false },
+          { id: "movement_dysmetria", name: "測定障害", note: "到着地点のズレ", keyform: false },
+          { id: "movement_speed", name: "所要時間", note: "麻痺側と非麻痺側の所要時間を比較", keyform: false }
+        ]
+      }
+    ];
+
+    const keyformHardToEasy = [
+      ["wrist_circumduction", "手関節の回旋運動", 3.9],
+      ["hook_grasp", "把持B: フック把持", 3.5],
+      ["shoulder_flexion_180", "肩関節屈曲180度、肘伸展", 3.1],
+      ["spherical_grasp", "把持E: 球体把持", 2.8],
+      ["lateral_prehension", "把持D: 側腹つまみ", 2.5],
+      ["wrist_flex_ext_ext", "手関節掌背屈、肘伸展", 2.2],
+      ["pron_sup_elbow_ext", "前腕回内外、肘伸展", 1.9],
+      ["wrist_stable_ext", "手関節背屈保持、肘伸展", 1.7],
+      ["forearm_supination", "前腕回外", 1.2],
+      ["shoulder_abduction_90", "肩関節外転90度、肘伸展", 0.9],
+      ["shoulder_external_rotation", "肩関節外旋", 0.5],
+      ["wrist_stable_90", "手関節背屈保持、肘90度", 0.3],
+      ["wrist_flex_ext_90", "手関節掌背屈、肘90度", 0.1],
+      ["palmar_prehension", "把持C: 指腹つまみ", -0.1],
+      ["scapular_retraction", "肩甲骨内転", -0.3],
+      ["pron_sup_elbow_90", "前腕回内外、肘90度", -0.5],
+      ["shoulder_flexion_90", "肩関節屈曲90度、肘伸展", -0.8],
+      ["hand_lumbar", "手を腰に", -1.0],
+      ["shoulder_abduction", "肩関節外転", -1.2],
+      ["elbow_extension", "肘関節伸展", -1.4],
+      ["forearm_pronation", "前腕回内", -1.6],
+      ["cylindrical_grasp", "把持A: 筒握り", -2.0],
+      ["finger_mass_extension", "手指伸展", -2.2],
+      ["shoulder_elevation", "肩関節挙上", -2.5],
+      ["finger_mass_flexion", "手指屈曲", -2.8],
+      ["shoulder_adduction_ir", "肩関節内転 + 内旋", -3.1],
+      ["elbow_flexion", "肘関節屈曲", -3.5]
+    ];
+
+    const keyformMax = keyformHardToEasy.length * 2;
+    const scoreState = {};
+    const allItems = sections.flatMap(s => s.items);
+
+    function scoreOf(id) {
+      return Number.isInteger(scoreState[id]) ? scoreState[id] : 0;
+    }
+
+    function setScore(id, score) {
+      scoreState[id] = score;
+      document.querySelectorAll(`[data-id="${id}"] button`).forEach(btn => {
+        btn.classList.toggle("active", Number(btn.dataset.score) === score);
+      });
+      renderResults();
+    }
+
+    function renderInputs() {
+      const root = document.getElementById("inputList");
+      root.innerHTML = "";
+      let n = 1;
+      for (const section of sections) {
+        const title = document.createElement("div");
+        title.className = `section-title ${section.key}`;
+        title.textContent = section.title;
+        root.appendChild(title);
+
+        for (const item of section.items) {
+          const row = document.createElement("div");
+          row.className = "item-row";
+          const max = item.max ?? 2;
+          row.innerHTML = `
+            <div class="item-index">${n}</div>
+            <div class="item-main">
+              <div class="item-name">${item.name}</div>
+              <div class="item-note">${item.note || ""}${item.keyform === false ? " / Keyform対象外" : ""}</div>
+            </div>
+            <div class="seg" data-id="${item.id}" aria-label="${item.name} の点数">
+              <button type="button" data-score="0">0</button>
+              <button type="button" data-score="1"${max === 1 ? " disabled" : ""}>1</button>
+              <button type="button" data-score="2">2</button>
+            </div>
+          `;
+          root.appendChild(row);
+          row.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", () => setScore(item.id, Number(btn.dataset.score)));
+          });
+          n++;
+        }
+      }
+    }
+
+    function stage(total66) {
+      if (total66 <= 20) return "重度";
+      if (total66 <= 50) return "中等度";
+      return "軽度";
+    }
+
+    function classify(keyItem, shortIds, longIds) {
+      const s = scoreOf(keyItem[0]);
+      if (shortIds.has(keyItem[0])) return "now";
+      if (longIds.has(keyItem[0])) return "next";
+      if (s === 2) return "mastered";
+      return "";
+    }
+
+    function findTransitionWindow(easyToHard) {
+      for (let start = 1; start <= easyToHard.length - 5; start++) {
+        const lowerScore = scoreOf(easyToHard[start - 1][0]);
+        if (lowerScore !== 2 && lowerScore !== 1) continue;
+        const nextLowest = lowerScore - 1;
+        const window = easyToHard.slice(start, start + 5);
+        const lowered = window.filter(item => scoreOf(item[0]) === nextLowest).length;
+        if (lowered >= 3) {
+          return {
+            window,
+            from: lowerScore,
+            to: nextLowest,
+            lowered
+          };
+        }
+      }
+
+      return {
+        window: easyToHard.filter(item => scoreOf(item[0]) === 1).slice(0, 5),
+        from: null,
+        to: null,
+        lowered: 0
+      };
+    }
+
+    function pickGoals(easyToHard) {
+      const transition = findTransitionWindow(easyToHard);
+      const short = transition.window;
+      const shortIds = new Set(short.map(i => i[0]));
+      const lastShortRank = short.length ? Math.max(...short.map(i => easyToHard.indexOf(i))) : -1;
+      const long = easyToHard
+        .filter((item, index) => index > lastShortRank && !shortIds.has(item[0]) && scoreOf(item[0]) < 2)
+        .slice(0, 6);
+      return { short, long, shortIds, longIds: new Set(long.map(i => i[0])), transition };
+    }
+
+    function renderGoalList(id, items) {
+      const root = document.getElementById(id);
+      root.innerHTML = "";
+      if (!items.length) {
+        const p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "候補がありません。入力を追加してください。";
+        root.replaceWith(p);
+        p.id = id;
+        return;
+      }
+      if (root.tagName !== "OL") {
+        const ol = document.createElement("ol");
+        ol.id = id;
+        ol.className = "rec-list";
+        root.replaceWith(ol);
+      }
+      const list = document.getElementById(id);
+      list.innerHTML = "";
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.textContent = item[1];
+        list.appendChild(li);
+      }
+    }
+
+    function renderResults() {
+      const total66 = allItems.reduce((sum, item) => sum + scoreOf(item.id), 0);
+      const keyIds = new Set(keyformHardToEasy.map(item => item[0]));
+      const total60 = allItems.filter(item => keyIds.has(item.id)).reduce((sum, item) => sum + scoreOf(item.id), 0);
+      const easyToHard = [...keyformHardToEasy].reverse();
+      const goals = pickGoals(easyToHard);
+      const transitionCount = goals.short.length;
+
+      document.getElementById("total66").textContent = total66;
+      document.getElementById("total60").textContent = total60;
+      document.getElementById("keyformMax").textContent = keyformMax;
+      document.getElementById("stageLabel").textContent = stage(total66);
+      document.getElementById("zoneCount").textContent = transitionCount;
+
+      renderGoalList("shortGoals", goals.short);
+      renderGoalList("longGoals", goals.long);
+
+      const keyRoot = document.getElementById("keyform");
+      keyRoot.innerHTML = "";
+      for (const item of keyformHardToEasy) {
+        const score = scoreOf(item[0]);
+        const tagClass = classify(item, goals.shortIds, goals.longIds);
+        const tagText = tagClass === "now" ? "練習中心" : tagClass === "next" ? "次の候補" : tagClass === "mastered" ? "安定" : score === 1 ? "部分" : "未達";
+        const row = document.createElement("div");
+        row.className = "key-row";
+        row.innerHTML = `
+          <div class="logit">logit ${item[2].toFixed(1)}</div>
+          <div class="key-name">${item[1]}</div>
+          <div class="badge score-${score}">${score}</div>
+          <div class="tag ${tagClass}">${tagText}</div>
+        `;
+        keyRoot.appendChild(row);
+      }
+    }
+
+    document.getElementById("clearScores").addEventListener("click", () => {
+      for (const item of allItems) scoreState[item.id] = 0;
+      allItems.forEach(item => setScore(item.id, 0));
+    });
+
+    document.getElementById("fillDemo").addEventListener("click", () => {
+      const demo = {
+        elbow_flexion: 2,
+        shoulder_adduction_ir: 2,
+        finger_mass_flexion: 2,
+        shoulder_elevation: 2,
+        finger_mass_extension: 2,
+        cylindrical_grasp: 1,
+        movement_tremor: 1,
+        forearm_pronation: 2,
+        elbow_extension: 1,
+        shoulder_abduction: 1,
+        hand_lumbar: 1,
+        shoulder_flexion_90: 1,
+        pron_sup_elbow_90: 1,
+        scapular_retraction: 1,
+        palmar_prehension: 0,
+        wrist_flex_ext_90: 0,
+        wrist_stable_90: 1,
+        shoulder_external_rotation: 1,
+        movement_dysmetria: 0,
+        shoulder_abduction_90: 0,
+        forearm_supination: 1
+      };
+      for (const item of allItems) setScore(item.id, demo[item.id] ?? 0);
+    });
+
+    document.getElementById("printPage").addEventListener("click", () => window.print());
+
+    renderInputs();
+    for (const item of allItems) scoreState[item.id] = 0;
+    renderResults();
+  </script>
+</body>
+</html>
